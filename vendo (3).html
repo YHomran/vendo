@@ -1,0 +1,1161 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Vendo: A revolutionary free online marketplace with an AI-powered chatbot, launching soon!">
+    <meta name="keywords" content="Vendo, free marketplace, AI chatbot, online shopping, global commerce">
+    <meta name="author" content="Vendo">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#1e3a8a">
+    <meta property="og:title" content="Vendo - Free Marketplace Coming Soon">
+    <meta property="og:description" content="Join Vendo, a free marketplace with a sassy AI chatbot for seamless shopping. Sign up now!">
+    <meta property="og:image" content="https://vendo.manus.space/og-image.jpg">
+    <meta property="og:url" content="https://vendo.manus.space/">
+    <meta property="og:type" content="website">
+    <title>Vendo - Free Marketplace Launching Soon</title>
+    <link rel="icon" type="image/png" href="/favicon.png" fetchpriority="high">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" fetchpriority="high" onload="this.media='all'" onerror="console.error('Failed to load Tailwind CSS');">
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #6b21a8;
+            --accent: #3b82f6;
+        }
+        body {
+            font-family: 'Inter', sans-serif, Arial, sans-serif;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+            background: #f3f4f6;
+            margin: 0;
+        }
+        section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6rem 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-bg {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            position: relative;
+        }
+        .hero-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.2), transparent 70%);
+            opacity: 0.7;
+            z-index: 2;
+            animation: pulseGradient 10s infinite ease-in-out;
+        }
+        @keyframes pulseGradient {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 0.9; }
+        }
+        #hero-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.85;
+            display: none;
+        }
+        #hero-canvas.active {
+            display: block;
+        }
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 3;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 4;
+        }
+        .nav-sticky {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(20px);
+            background: linear-gradient(90deg, rgba(17, 24, 39, 0.95), rgba(31, 41, 55, 0.95));
+            transition: all 0.3s ease;
+        }
+        .nav-sticky.scrolled {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), #7e22ce);
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after, .nav-link:focus::after {
+            width: 100%;
+        }
+        .nav-menu {
+            display: flex;
+            align-items: center;
+        }
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+        .hamburger span {
+            width: 24px;
+            height: 3px;
+            background: white;
+            margin: 2px 0;
+            transition: all 0.3s ease;
+        }
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -7px);
+        }
+        .fade-in {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s ease-out, transform 1s ease-out;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(243, 244, 246, 0.1));
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: transform 0.5s ease, box-shadow 0.5s ease, background 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 280px;
+            padding: 2.5rem;
+        }
+        .card:hover, .card.touched {
+            transform: translateY(-15px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(243, 244, 246, 0.2));
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.5), transparent);
+            opacity: 0;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+            transform: rotate(45deg);
+            z-index: -1;
+        }
+        .card:hover::before, .card.touched::before {
+            opacity: 1;
+            transform: rotate(0deg);
+        }
+        .particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleBurst 1s ease-out forwards;
+        }
+        @keyframes particleBurst {
+            to { opacity: 0; transform: translateY(-40px) scale(0.3); }
+        }
+        .ripple-button {
+            position: relative;
+            overflow: hidden;
+        }
+        .ripple-button::after {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.4), transparent);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s ease;
+            pointer-events: none;
+        }
+        .ripple-button:active::after {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0;
+        }
+        .testimonial-slider {
+            overflow: hidden;
+        }
+        .testimonial-slide {
+            flex: 0 0 100%;
+            transition: transform 0.7s ease, opacity 0.7s ease;
+            opacity: 1;
+        }
+        .testimonial-slide.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .parallax-bg {
+            background: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80') center/cover fixed;
+            position: relative;
+        }
+        .parallax-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+        }
+        .text-reveal {
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            --before-left: -100%;
+            transition: opacity 1.2s ease, --before-left 1.2s ease;
+        }
+        .text-reveal.visible {
+            opacity: 1;
+            --before-left: 100%;
+        }
+        .text-reveal::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: var(--before-left);
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 1.2s ease;
+        }
+        .chatbot-message {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .chatbot-message.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .dark-mode {
+            background: #0f172a;
+            color: #f9fafb;
+        }
+        .dark-mode .hero-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e40af 100%);
+        }
+        .dark-mode .features-bg {
+            background: #1f2937;
+        }
+        .dark-mode .vision-bg {
+            background: #374151;
+        }
+        .dark-mode .testimonials-bg {
+            background: #1f2937;
+        }
+        .dark-mode .contact-bg {
+            background: linear-gradient(135deg, #1e40af 0%, #4c1d95 100%);
+        }
+        .dark-mode .card {
+            background: linear-gradient(135deg, rgbauszcz(31, 41, 55, 0.2), rgba(17, 24, 39, 0.2));
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        .dark-mode .card h3, .dark-mode .card p {
+            color: #f9fafb;
+        }
+        .dark-mode .nav-sticky {
+            background: linear-gradient(90deg, rgba(31, 41, 55, 0.95), rgba(17, 24, 39, 0.95));
+        }
+        .social-icon {
+            transition: transform 0.3s ease, color 0.3s ease;
+            pointer-events: none;
+        }
+        .social-icon.enabled {
+            pointer-events: auto;
+        }
+        .social-icon:hover, .social-icon:focus {
+            transform: scale(1.3) rotate(10deg);
+            color: var(--accent);
+        }
+        input, textarea {
+            transition: all 0.3s ease;
+        }
+        input:focus, textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+            outline: none;
+        }
+        .pulse-button {
+            animation: pulse 2s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 12px rgba(59, 130, 246, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        .form-loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .chatbot-preview {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        .chatbot-message::after {
+            content: '|';
+            position: absolute;
+            right: 0;
+            color: var(--accent);
+            animation: blink 1s infinite;
+            display: none;
+        }
+        .chatbot-message.typing::after {
+            display: inline;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        .accordion-item {
+            transition: all 0.3s ease;
+        }
+        .accordion-item.active .accordion-content {
+            max-height: 200px;
+            padding: 1rem;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+        #fallbackMessage {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 1rem;
+            text-align: center;
+            z-index: 100;
+        }
+        #waitlistCounter {
+            margin-top: 1rem;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #e5e7eb;
+            opacity: 0.9;
+            transition: opacity 0.5s ease;
+        }
+        .dark-mode #waitlistCounter {
+            color: #d1d5db;
+        }
+        #waitlistProgress {
+            margin-top: 1rem;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        #waitlistProgressBar {
+            height: 100%;
+            background: var(--accent);
+            transition: width 1s ease;
+        }
+        @media (max-width: 768px) {
+            section {
+                padding: 3rem 1rem;
+            }
+            .nav-sticky {
+                padding: 0.75rem;
+            }
+            .nav-menu {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: inherit;
+                padding: 1rem;
+            }
+            .nav-menu.active {
+                display: flex;
+            }
+            .nav-link {
+                font-size: 1rem;
+                padding: 0.5rem 0;
+            }
+            .hamburger {
+                display: flex;
+            }
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            .hero-content p {
+                font-size: 1.125rem;
+            }
+            .card {
+                min-height: 220px;
+                padding: 1.5rem;
+            }
+            .particle {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="transition-colors duration-500">
+    <div id="fallbackMessage">Oops! Something went wrong loading the page. Please try refreshing!</div>
+    <nav class="nav-sticky text-white py-4" role="navigation" aria-label="Main navigation">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-3xl font-extrabold">Vendo</h1>
+            <div class="hamburger" aria-controls="navMenu" aria-expanded="false" role="button" tabindex="0">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="nav-menu flex space-x-6 items-center" id="navMenu">
+                <a href="#hero" class="nav-link text-lg hover:text-blue-300 transition" aria-label="Home">Home</a>
+                <a href="#features" class="nav-link text-lg hover:text-blue-300 transition" aria-label="Vendo Features">Features</a>
+                <a href="#vision" class="nav-link text-lg hover:text-blue-300 transition" aria-label="Our Vision">Vision</a>
+                <a href="#testimonials" class="nav-link text-lg hover:text-blue-300 transition" aria-label="Testimonials">Testimonials</a>
+                <a href="#contact" class="nav-link text-lg hover:text-blue-300 transition" aria-label="Contact">Contact</a>
+                <button id="darkModeToggle" class="p-2 rounded-full hover:bg-gray-700 transition pulse-button ripple-button" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <section id="hero" class="hero-bg" role="banner">
+        <canvas id="hero-canvas" aria-hidden="true"></canvas>
+        <div class="hero-overlay"></div>
+        <div class="hero-content container mx-auto px-4 text-center">
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-4 text-reveal">Vendo is Coming!</h1>
+            <p class="text-xl md:text-2xl mb-8 opacity-90 text-reveal">A free marketplace with a sassy AI chatbot, ready to shake up shopping. Be the first to join!</p>
+            <a href="#contact" class="inline-block bg-white text-blue-600 font-semibold py-4 px-12 rounded-full hover:bg-blue-100 transition duration-300 pulse-button ripple-button text-reveal" role="button" aria-label="Join Vendo Waitlist">Join Waitlist</a>
+        </div>
+    </section>
+
+    <section id="features" class="features-bg py-32 bg-gray-100 dark:bg-gray-900">
+        <div class="container mx-auto px-4 fade-in">
+            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white text-center mb-12 text-reveal">Why Vendo Rocks</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                <div class="card rounded-xl">
+                    <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4 text-reveal">Totally Free</h3>
+                    <p class="text-gray-600 dark:text-gray-300 text-reveal">Zero fees, no catch—buy and sell without spending a dime!</p>
+                </div>
+                <div class="card rounded-xl">
+                    <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4 text-reveal">Cheeky Chatbot</h3>
+                    <p class="text-gray-600 dark:text-gray-300 text-reveal">Our AI buddy’s got sass and smarts to guide your shopping spree.</p>
+                </div>
+                <div class="card rounded-xl">
+                    <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4 text-reveal">Smooth Vibes</h3>
+                    <p class="text-gray-600 dark:text-gray-300 text-reveal">Easy-to-use design that makes shopping feel like a breeze.</p>
+                </div>
+            </div>
+            <div class="chatbot-preview p-6 mt-16 max-w-2xl mx-auto fade-in">
+                <h3 class="text-2xl font-semibold text-white mb-4 text-reveal">Meet Our Chatbot 😎</h3>
+                <div id="chatbotMessages" class="space-y-4">
+                    <div class="chatbot-message bg-white dark:bg-gray-800 p-4 rounded-lg text-gray-800 dark:text-gray-300">Yo, ready to shop? I’m your VIP guide!</div>
+                    <div class="chatbot-message bg-blue-100 dark:bg-blue-900 p-4 rounded-lg text-blue-800 dark:text-blue-300">Got a craving for deals? I’ll hook you up! 😜</div>
+                    <div class="chatbot-message bg-white dark:bg-gray-800 p-4 rounded-lg text-gray-800 dark:text-gray-300">Ask me anything, I’m all ears... or rather, all code!</div>
+                </div>
+                <div class="mt-4">
+                    <input id="chatbotInput" type="text" placeholder="Type a message..." class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" aria-label="Chatbot Input">
+                    <button id="chatbotSend" class="mt-2 bg-blue-600 text-white py-2 px-6 rounded-full hover:bg-blue-700 transition pulse-button ripple-button" aria-label="Send Chatbot Message">Send</button>
+                </div>
+            </div>
+            <div class="text-center mt-16 fade-in">
+                <h3 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4 text-reveal">Launch Party Alert!</h3>
+                <p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Vendo’s dropping soon, and it’s gonna be epic. Sign up below to be the first to dive in!</p>
+                <a href="#contact" class="inline-block mt-6 bg-blue-600 text-white font-semibold py-3 px-8 rounded-full hover:bg-blue-700 transition pulse-button ripple-button" role="button" aria-label="Sign Up for Launch">Join the Waitlist</a>
+            </div>
+            <div class="mt-16 max-w-3xl mx-auto fade-in">
+                <h3 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4 text-reveal">Got Questions? We’ve Got Answers!</h3>
+                <div class="accordion" role="region" aria-label="FAQ Accordion">
+                    <div class="accordion-item border-b border-gray-200 dark:border-gray-700">
+                        <button class="accordion-toggle w-full text-left py-4 text-gray-800 dark:text-white font-semibold flex justify-between items-center" aria-expanded="false" aria-controls="faq1">
+                            Is Vendo actually free? 🤔
+                            <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div id="faq1" class="accordion-content text-gray-600 dark:text-gray-300">Yup, 100% free! No fees, no sneaky charges—just pure shopping fun.</div>
+                    </div>
+                    <div class="accordion-item border-b border-gray-200 dark:border-gray-700">
+                        <button class="accordion-toggle w-full text-left py-4 text-gray-800 dark:text-white font-semibold flex justify-between items-center" aria-expanded="false" aria-controls="faq2">
+                            What’s the deal with the chatbot? 😎
+                            <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                        <div id="faq2" class="accordion-content text-gray-600 dark:text-gray-300">It’s your shopping sidekick, answering questions with smarts and a sprinkle of sass!</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="vision" class="parallax-bg vision-bg py-32">
+        <div class="parallax-overlay"></div>
+        <div class="container mx-auto px-4 text-center fade-in relative z-10">
+            <h2 class="text-4xl md:text-5xl font-bold text-white mb-12 text-reveal">Our Big Dream</h2>
+            <p class="text-xl text-gray-200 max-w-3xl mx-auto text-reveal">Vendo’s here to make global shopping free, fun, and futuristic with our AI-powered platform. Join us in building the ultimate marketplace!</p>
+        </div>
+    </section>
+
+    <section id="testimonials" class="testimonials-bg py-32 bg-gray-100 dark:bg-gray-900">
+        <div class="container mx-auto px-4 fade-in">
+            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white text-center mb-12 text-reveal">What Beta Testers Say</h2>
+            <div class="testimonial-slider flex overflow-hidden" role="region" aria-label="Testimonial Carousel">
+                <div class="testimonial-slide px-4">
+                    <div class="card p-8 text-center">
+                        <p class="text-gray-600 dark:text-gray-300 text-lg mb-4 text-reveal">"The chatbot’s so fun, it feels like shopping with a friend!"</p>
+                        <p class="font-semibold text-gray-800 dark:text-white text-reveal">— Alex R., Beta Tester</p>
+                    </div>
+                </div>
+                <div class="testimonial-slide px-4">
+                    <div class="card p-8 text-center">
+                        <p class="text-gray-600 dark:text-gray-300 text-lg mb-4 text-reveal">"Free and super easy to use. Can’t wait for the launch!"</p>
+                        <p class="font-semibold text-gray-800 dark:text-white text-reveal">— Sarah K., Beta Tester</p>
+                    </div>
+                </div>
+                <div class="testimonial-slide px-4">
+                    <div class="card p-8 text-center">
+                        <p class="text-gray-600 dark:text-gray-300 text-lg mb-4 text-reveal">"Vendo’s gonna be huge. The chatbot’s a total vibe!"</p>
+                        <p class="font-semibold text-gray-800 dark:text-white text-reveal">— Michael T., Beta Tester</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-center mt-8 space-x-4">
+                <button id="prevSlide" class="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition pulse-button ripple-button" aria-label="Previous Testimonial"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg></button>
+                <button id="nextSlide" class="p-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 transition pulse-button ripple-button" aria-label="Next Testimonial"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></button>
+            </div>
+            <div aria-live="polite" class="sr-only" id="carouselStatus"></div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact-bg py-32 bg-gradient-to-br from-blue-900 to-purple-900">
+        <div class="container mx-auto px-4 text-center fade-in">
+            <h2 class="text-4xl md:text-5xl font-bold text-white mb-12 text-reveal">Be a Vendo VIP</h2>
+            <p class="text-xl text-gray-200 mb-8 max-w-2xl mx-auto text-reveal">Want in on the launch? Drop us a line to join the waitlist!</p>
+            <form id="contactForm" class="max-w-lg mx-auto space-y-6">
+                <input type="text" id="name" placeholder="Your Name" class="w-full p-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" required aria-label="Name">
+                <input type="email" id="email" placeholder="Your Email" class="w-full p-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" required aria-label="Email">
+                <textarea id="message" placeholder="Tell us why you’re hyped!" rows="5" class="w-full p-4 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" required aria-label="Message"></textarea>
+                <button type="submit" class="inline-block bg-white text-blue-600 font-semibold py-3 px-8 rounded-full hover:bg-blue-100 transition duration-300 pulse-button ripple-button" role="button" aria-label="Submit Contact Form">Join the Waitlist</button>
+            </form>
+            <p id="waitlistCounter" class="fade-in" role="status" aria-live="polite">0 people have joined the Vendo VIP list!</p>
+            <div id="waitlistProgress" class="fade-in"><div id="waitlistProgressBar" style="width: 0%"></div></div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-white py-16">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="fade-in">
+                    <h3 class="text-xl font-semibold mb-4 text-reveal">Vendo</h3>
+                    <p class="text-gray-300 text-reveal">Get ready for a free, fun, AI-powered marketplace that’s all about you!</p>
+                </div>
+                <div class="fade-in">
+                    <h3 class="text-xl font-semibold mb-4 text-reveal">Explore</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#features" class="text-gray-300 hover:text-white transition text-reveal">Features</a></li>
+                        <li><a href="#vision" class="text-gray-300 hover:text-white transition text-reveal">Vision</a></li>
+                        <li><a href="#testimonials" class="text-gray-300 hover:text-white transition text-reveal">Testimonials</a></li>
+                    </ul>
+                </div>
+                <div class="fade-in">
+                    <h3 class="text-xl font-semibold mb-4 text-reveal">Resources</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-300 hover:text-white transition text-reveal">Support</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition text-reveal">Privacy Policy</a></li>
+                        <li><a href="#" class="text-gray-300 hover:text-white transition text-reveal">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div class="fade-in">
+                    <h3 class="text-xl font-semibold mb-4 text-reveal">Connect</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="social-icon text-gray-300 hover:text-blue-400 transition" aria-label="Twitter"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84"/></svg></a>
+                        <a href="#" class="social-icon text-gray-300 hover:text-blue-400 transition" aria-label="Facebook"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.729 0 1.323-.593 1.323-1.325V1.325C24 .593 23.407 0 22.675 0z"/></svg></a>
+                        <a href="#" class="social-icon text-gray-300 hover:text-blue-400 transition" aria-label="LinkedIn"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M4.98 3.5c0 1.381-1.11 2.5-2.48 2.5s-2.48-1.119-2.48-2.5c0-1.38 1.11-2.5 2.48-2.5s2.48 1.12 2.48 2.5zm.02 4.5h-5v16h5v-16zm7.982 0h-4.968v16h4.969v-8.399c0-4.67 6.029-5.052 6.029 0v8.399h4.988v-10.131c0-7.88-8.922-7.593-11.018-3.714v-2.155z"/></svg></a>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-12 text-center fade-in">
+                <h3 class="text-xl font-semibold mb-4 text-reveal">Stay in the Loop</h3>
+                <p class="text-gray-300 mb-4 text-reveal">Subscribe for Vendo launch updates and exclusive perks!</p>
+                <form id="newsletterForm" class="max-w-md mx-auto flex space-x-2">
+                    <input type="email" id="newsletterEmail" placeholder="Your Email" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500" required aria-label="Newsletter Email">
+                    <button type="submit" class="bg-blue-600 text-white py-3 px-6 rounded-full hover:bg-blue-700 transition pulse-button ripple-button" role="button" aria-label="Subscribe to Newsletter">Subscribe</button>
+                </form>
+            </div>
+            <p class="text-center text-sm text-gray-400 mt-8 text-reveal">© 2025 Vendo. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Add js-enabled class
+        document.documentElement.classList.add('js-enabled');
+
+        // Debounce utility
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Lazy load scripts with fallback
+        async function loadScript(src, fallbackSrc) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.defer = true;
+                script.fetchpriority = 'low';
+                script.onload = () => {
+                    console.log(`Loaded script: ${src}`);
+                    resolve();
+                };
+                script.onerror = async () => {
+                    console.warn(`Failed to load script: ${src}, trying fallback: ${fallbackSrc}`);
+                    if (fallbackSrc) {
+                        try {
+                            const fallbackScript = document.createElement('script');
+                            fallbackScript.src = fallbackSrc;
+                            fallbackScript.defer = true;
+                            fallbackScript.fetchpriority = 'low';
+                            fallbackScript.onload = () => {
+                                console.log(`Loaded fallback script: ${fallbackSrc}`);
+                                resolve();
+                            };
+                            fallbackScript.onerror = () => {
+                                console.error(`Failed to load fallback script: ${fallbackSrc}`);
+                                reject(new Error(`Failed to load script and fallback: ${src}, ${fallbackSrc}`));
+                            };
+                            document.body.appendChild(fallbackScript);
+                        } catch (error) {
+                            reject(error);
+                        }
+                    } else {
+                        reject(new Error(`Failed to load script: ${src}`));
+                    }
+                };
+                document.body.appendChild(script);
+            });
+        }
+
+        // WebGL Starfield
+        async function initWebGL() {
+            try {
+                if (!window.WebGLRenderingContext || !document.createElement('canvas').getContext('webgl')) {
+                    throw new Error('WebGL not supported');
+                }
+                await loadScript('https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js', 'https://unpkg.com/three@0.134.0/build/three.min.js');
+                const canvas = document.getElementById('hero-canvas');
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                camera.position.z = 10;
+
+                const geometry = new THREE.BufferGeometry();
+                const vertices = [];
+                const velocities = [];
+                const particleCount = window.innerWidth < 768 ? 800 : 1500;
+                for (let i = 0; i < particleCount; i++) {
+                    vertices.push(
+                        Math.random() * 30 - 15,
+                        Math.random() * 30 - 15,
+                        Math.random() * 30 - 15
+                    );
+                    velocities.push(
+                        (Math.random() - 0.5) * 0.015,
+                        (Math.random() - 0.5) * 0.015,
+                        (Math.random() - 0.5) * 0.015
+                    );
+                }
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                const material = new THREE.PointsMaterial({ color: 0x3b82f6, size: 0.04, transparent: true });
+                const points = new THREE.Points(geometry, material);
+                scene.add(points);
+
+                let mouseX = 0, mouseY = 0;
+                document.addEventListener('mousemove', (e) => {
+                    mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+                    mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+                });
+
+                function animate() {
+                    requestAnimationFrame(animate);
+                    points.rotation.y += 0.002 + mouseX * 0.004;
+                    points.rotation.x += mouseY * 0.004;
+                    const positions = points.geometry.attributes.position.array;
+                    for (let i = 0; i < positions.length; i += 3) {
+                        positions[i] = Math.max(-15, Math.min(15, positions[i] + velocities[i]));
+                        positions[i + 1] = Math.max(-15, Math.min(15, positions[i + 1] + velocities[i + 1]));
+                        positions[i + 2] = Math.max(-15, Math.min(15, positions[i + 2] + velocities[i + 2]));
+                        if (Math.abs(positions[i]) >= 15) velocities[i] *= -1;
+                        if (Math.abs(positions[i + 1]) >= 15) velocities[i + 1] *= -1;
+                        if (Math.abs(positions[i + 2]) >= 15) velocities[i + 2] *= -1;
+                    }
+                    points.geometry.attributes.position.needsUpdate = true;
+                    renderer.render(scene, camera);
+                }
+                animate();
+                window.addEventListener('resize', () => {
+                    camera.aspect = window.innerWidth / window.innerHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                });
+                canvas.classList.add('active');
+            } catch (error) {
+                console.error('WebGL initialization failed:', error);
+                document.getElementById('hero-canvas').style.display = 'none';
+                document.querySelector('.hero-bg').style.background = 'linear-gradient(135deg, #1e3a8a 0%, #6b21a8 100%)';
+            }
+        }
+        initWebGL();
+
+        // Framer Motion Animations
+        async function initAnimations() {
+            try {
+                await loadScript(
+                    'https://cdnjs.cloudflare.com/ajax/libs/framer-motion/10.16.4/motion.min.js',
+                    'https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js'
+                );
+                if (!window.motion) throw new Error('Framer Motion not loaded');
+                console.log('Framer Motion initialized successfully');
+                const { animate, stagger } = motion;
+
+                // Observe elements for visibility
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                // Fade-in animations
+                const fadeIns = document.querySelectorAll('.fade-in');
+                fadeIns.forEach(el => {
+                    observer.observe(el);
+                    animate(el, {
+                        opacity: [0, 1],
+                        y: [50, 0]
+                    }, {
+                        duration: 1,
+                        delay: stagger(0.2),
+                        ease: 'easeOut'
+                    });
+                });
+
+                // Text reveal animations
+                const textReveals = document.querySelectorAll('.text-reveal');
+                textReveals.forEach(el => {
+                    observer.observe(el);
+                    animate(el, {
+                        opacity: [0, 1]
+                    }, {
+                        duration: 0,
+                        onComplete: () => el.classList.add('visible'),
+                        delay: stagger(0.1)
+                    });
+                });
+
+                // Chatbot message animations
+                const chatbotMessages = document.querySelectorAll('.chatbot-message');
+                chatbotMessages.forEach((el, i) => {
+                    observer.observe(el);
+                    animate(el, {
+                        opacity: [0, 1],
+                        y: [20, 0]
+                    }, {
+                        duration: 0.8,
+                        delay: stagger(0.5, { startDelay: i * 0.5 }),
+                        ease: 'easeOut'
+                    });
+                });
+            } catch (error) {
+                console.error('Animation initialization failed, using CSS fallbacks:', error);
+                // Trigger CSS fallback animations
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
+                document.querySelectorAll('.fade-in, .text-reveal, .chatbot-message').forEach(el => observer.observe(el));
+            }
+        }
+        initAnimations();
+
+        // Mobile navigation
+        const hamburger = document.querySelector('.hamburger');
+        const navMenu = document.querySelector('.nav-menu');
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            navMenu.classList.toggle('active');
+            hamburger.setAttribute('aria-expanded', hamburger.classList.contains('active'));
+        });
+        hamburger.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                hamburger.click();
+            }
+        });
+
+        // Dark mode toggle
+        const toggleButton = document.getElementById('darkModeToggle');
+        const isDarkMode = localStorage.getItem('darkMode') === 'true';
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+            toggleButton.querySelector('svg').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+        }
+        toggleButton.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            toggleButton.querySelector('svg').innerHTML = isDark
+                ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>'
+                : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+        });
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(anchor.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                    if (window.innerWidth <= 768) {
+                        hamburger.classList.remove('active');
+                        navMenu.classList.remove('active');
+                        hamburger.setAttribute('aria-expanded', 'false');
+                    }
+                }
+            });
+        });
+
+        // Card interactions
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', (e) => {
+                if (window.innerWidth < 768) return;
+                const rect = card.getBoundingClientRect();
+                for (let i = 0; i < 8; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = `${e.clientX - rect.left}px`;
+                    particle.style.top = `${e.clientY - rect.top}px`;
+                    card.appendChild(particle);
+                    setTimeout(() => particle.remove(), 1000);
+                }
+            });
+            card.addEventListener('touchstart', () => {
+                card.classList.add('touched');
+                setTimeout(() => card.classList.remove('touched'), 500);
+            });
+        });
+
+        // Testimonial carousel
+        const slides = document.querySelectorAll('.testimonial-slide');
+        const carouselStatus = document.getElementById('carouselStatus');
+        let currentSlide = 0;
+        function updateSlides() {
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('active', i === currentSlide);
+                slide.style.transform = `translateX(${(i - currentSlide) * 100}%)`;
+                slide.setAttribute('aria-hidden', i !== currentSlide);
+            });
+            carouselStatus.textContent = `Showing testimonial ${currentSlide + 1} of ${slides.length}`;
+        }
+        document.getElementById('nextSlide').addEventListener('click', () => {
+            currentSlide = (currentSlide + 1) % slides.length;
+            updateSlides();
+        });
+        document.getElementById('prevSlide').addEventListener('click', () => {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            updateSlides();
+        });
+        document.getElementById('nextSlide').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                currentSlide = (currentSlide + 1) % slides.length;
+                updateSlides();
+            }
+        });
+        document.getElementById('prevSlide').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+                updateSlides();
+            }
+        });
+        updateSlides();
+
+        // Accordion
+        document.querySelectorAll('.accordion-toggle').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const item = toggle.parentElement;
+                const isActive = item.classList.contains('active');
+                document.querySelectorAll('.accordion-item').forEach(i => {
+                    i.classList.remove('active');
+                    i.querySelector('.accordion-toggle svg').style.transform = 'rotate(0deg)';
+                    i.querySelector('.accordion-toggle').setAttribute('aria-expanded', 'false');
+                });
+                if (!isActive) {
+                    item.classList.add('active');
+                    toggle.querySelector('svg').style.transform = 'rotate(180deg)';
+                    toggle.setAttribute('aria-expanded', 'true');
+                }
+            });
+            toggle.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggle.click();
+                }
+            });
+        });
+
+        // Chatbot preview
+        const chatbotMessages = document.querySelectorAll('.chatbot-message');
+        const chatbotInput = document.getElementById('chatbotInput');
+        const chatbotSend = document.getElementById('chatbotSend');
+        const responses = [
+            'Sweet! Let’s find you some epic deals! 😎',
+            'What’s on your shopping list? I’m ready to help!',
+            'Vendo’s got the vibes—let’s make shopping fun!'
+        ];
+        let currentMessageIndex = 0;
+
+        function typeMessage(message, element, callback) {
+            element.textContent = '';
+            element.classList.add('typing');
+            let i = 0;
+            const type = () => {
+                if (i < message.length) {
+                    element.textContent += message[i];
+                    i++;
+                    setTimeout(type, 50);
+                } else {
+                    element.classList.remove('typing');
+                    element.classList.add('visible');
+                    if (callback) callback();
+                }
+            };
+            type();
+        }
+
+        function cycleMessages() {
+            const currentMessage = chatbotMessages[currentMessageIndex];
+            typeMessage(responses[currentMessageIndex], currentMessage, () => {
+                currentMessageIndex = (currentMessageIndex + 1) % responses.length;
+                setTimeout(cycleMessages, 3000);
+            });
+        }
+        cycleMessages();
+
+        chatbotSend.addEventListener('click', () => {
+            if (chatbotInput.value.trim()) {
+                const userMessage = document.createElement('div');
+                userMessage.className = 'chatbot-message bg-blue-100 dark:bg-blue-900 p-4 rounded-lg text-blue-800 dark:text-blue-300 visible';
+                userMessage.textContent = chatbotInput.value;
+                chatbotMessages[chatbotMessages.length - 1].after(userMessage);
+                chatbotInput.value = '';
+                setTimeout(() => {
+                    const responseMessage = document.createElement('div');
+                    responseMessage.className = 'chatbot-message bg-white dark:bg-gray-800 p-4 rounded-lg text-gray-800 dark:text-gray-300';
+                    typeMessage(responses[Math.floor(Math.random() * responses.length)], responseMessage);
+                    chatbotMessages[chatbotMessages.length - 1].after(responseMessage);
+                }, 1000);
+            }
+        });
+        chatbotInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                chatbotSend.click();
+            }
+        });
+
+        // Waitlist counter
+        const waitlistCounter = document.getElementById('waitlistCounter');
+        const waitlistProgressBar = document.getElementById('waitlistProgressBar');
+        let submissionCount = parseInt(localStorage.getItem('vendoWaitlistCount') || '0', 10);
+        function updateWaitlistCounter() {
+            waitlistCounter.textContent = `${submissionCount} people have joined the Vendo VIP list!`;
+            const progress = Math.min((submissionCount / 1000) * 100, 100);
+            waitlistProgressBar.style.width = `${progress}%`;
+            waitlistCounter.classList.add('visible');
+        }
+        updateWaitlistCounter();
+
+        // Form submission handler
+        function handleFormSubmission(formId, successMessage, errorMessage, validate, isContactForm = false) {
+            const form = document.getElementById(formId);
+            let isSubmitting = false;
+            const submitHandler = debounce((e) => {
+                e.preventDefault();
+                if (isSubmitting) return;
+                isSubmitting = true;
+                form.classList.add('form-loading');
+                const isValid = validate();
+                setTimeout(() => {
+                    alert(isValid ? successMessage : errorMessage);
+                    if (isValid) {
+                        form.reset();
+                        if (isContactForm) {
+                            submissionCount += 1;
+                            localStorage.setItem('vendoWaitlistCount', submissionCount);
+                            if (window.motion) {
+                                motion.animate(waitlistCounter, {
+                                    scale: [1, 1.1, 1],
+                                    opacity: [1, 0.8, 1]
+                                }, { duration: 0.5 });
+                            }
+                            updateWaitlistCounter();
+                        }
+                    }
+                    form.classList.remove('form-loading');
+                    isSubmitting = false;
+                }, 500);
+            }, 500);
+            form.addEventListener('submit', submitHandler);
+        }
+
+        // Contact form
+        handleFormSubmission(
+            'contactForm',
+            'Thank you for your message! You’re officially on the Vendo VIP list!',
+            'Please fill out all fields correctly.',
+            () => {
+                const name = document.getElementById('name').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const message = document.getElementById('message').value.trim();
+                const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                return name && emailRegex.test(email) && message;
+            },
+            true
+        );
+
+        // Newsletter form
+        handleFormSubmission(
+            'newsletterForm',
+            'Thanks for subscribing! You’ll be the first to know when Vendo drops!',
+            'Please enter a valid email address.',
+            () => {
+                const email = document.getElementById('newsletterEmail').value.trim();
+                const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                return emailRegex.test(email);
+            }
+        );
+
+        // Nav sticky effect
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('.nav-sticky');
+            nav.classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // Parallax effect
+        window.addEventListener('scroll', () => {
+            const parallaxSections = document.querySelectorAll('.parallax-bg');
+            parallaxSections.forEach(section => {
+                const offset = section.getBoundingClientRect().top;
+                section.style.backgroundPositionY = `${offset * 0.3}px`;
+            });
+        });
+
+        // CSS animation fallback on page load
+        window.addEventListener('load', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            document.querySelectorAll('.fade-in, .text-reveal, .chatbot-message').forEach(el => observer.observe(el));
+        });
+
+        // Log page load
+        console.log('Page loaded successfully');
+    </script>
+</body>
+</html>
